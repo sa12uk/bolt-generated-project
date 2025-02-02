@@ -1,215 +1,191 @@
-import React, { useState, useEffect, useRef } from 'react';
-import './index.css';
+import React, { useState, useEffect, useCallback } from 'react'
+import './App.css'
+import AvailabilityDashboard from './components/AvailabilityDashboard';
+import ResourceDashboard from './components/ResourceDashboard';
+import RegistrationForm from './components/RegistrationForm';
+import LoginForm from './components/LoginForm';
+import UserProfile from './components/UserProfile';
+import AddUserForm from './components/AddUserForm'; // Import AddUserForm
 
 function App() {
-  const [staff, setStaff] = useState([]);
-  const [newStaffName, setNewStaffName] = useState('');
-  const ws = useRef(null);
+  const [firefighters, setFirefighters] = useState(() => {
+    localStorage.removeItem('firefighters');
+    const storedFirefighters = localStorage.getItem('firefighters');
+    return storedFirefighters ? JSON.parse(storedFirefighters) : [
+      { id: 1, name: 'Firefighter 1', username: 'ff1', password: 'password1', available: true, role: 'firefighter' },
+      { id: 2, name: 'Firefighter 2', username: 'ff2', password: 'password2', available: false, role: 'firefighter' },
+      { id: 3, name: 'Crew Manager 1', username: 'cm1', password: 'password3', available: true, role: 'crew_manager' },
+      { id: 4, name: 'Watch Manager 1', username: 'wm1', password: 'password4', available: true, role: 'watch_manager' },
+      { id: 5, name: 'Admin User', username: 'admin', password: '79318382', role: 'admin' },
+    ];
+  });
+  // Move showAddUserForm State Declaration to the TOP, after firefighters state
+  const [showAddUserForm, setShowAddUserForm] = useState(false); // State for Add User Form
+  const [currentUser, setCurrentUser] = useState(null);
+  const [showRegistrationForm, setShowRegistrationForm] = useState(false);
+  const [showLoginForm, setShowLoginForm] = useState(true); // Login form is default
+  const [showProfile, setShowProfile] = useState(false);
+
+
+  const resetAllRideStatuses = useCallback(() => {
+    // No more hasRiddenAppliance reset needed
+    console.log('Daily reset function executed.');
+  }, []); // Removed dependencies
 
   useEffect(() => {
-    fetchStaff();
+    localStorage.setItem('firefighters', JSON.stringify(firefighters));
+  }, [firefighters]);
 
-    ws.current = new WebSocket('ws://localhost:3000');
+  useEffect(() => {
+    const resetRideStatusDaily = () => {
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setHours(24, 0, 0, 0);
+      const timeUntilMidnight = midnight.getTime() - now.getTime();
 
-    ws.current.onopen = () => console.log("ws opened");
-    ws.current.onclose = () => console.log("ws closed");
+      const timeoutId = setTimeout(() => {
+        resetAllRideStatuses();
+        const intervalId = setInterval(resetAllRideStatuses, 24 * 60 * 60 * 1000);
+        return () => clearInterval(intervalId);
+      }, timeUntilMidnight);
 
-    ws.current.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === 'staff_update') {
-        setStaff(message.staff);
-      }
+      return () => clearTimeout(timeoutId);
     };
 
-    return () => {
-      if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-        ws.current.close();
-      }
-    };
-  }, []);
+    resetRideStatusDaily();
+  }, [resetAllRideStatuses]);
 
-  const fetchStaff = async () => {
-    try {
-      const response = await fetch('/api/staff');
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      setStaff(data);
-    } catch (error) {
-      console.error("Failed to fetch staff:", error);
+
+  const addFirefighter = (newFirefighter) => {
+    setFirefighters([...firefighters, { ...newFirefighter, id: firefighters.length + 1, available: true }]);
+    setShowRegistrationForm(false);
+    setShowLoginForm(true);
+    setShowAddUserForm(false); // Hide Add User form if it was open
+  };
+
+  const removeFirefighter = (id) => {
+    if (currentUser.id === id) {
+      alert("You cannot remove yourself."); // Prevent user from removing themselves
+      return;
+    }
+    setFirefighters(firefighters.filter(ff => ff.id !== id));
+  };
+
+
+  const toggleAvailability = (id) => {
+    setFirefighters(firefighters.map(ff =>
+      ff.id === id ? { ...ff, available: !ff.available } : ff
+    ));
+  };
+
+  const login = (username, password) => {
+    console.log('Login attempt:', { username, password });
+    console.log('Current firefighters array:', JSON.stringify(firefighters, null, 2));
+    const user = firefighters.find(ff => ff.username === username && ff.password === password);
+    console.log('Found user:', user);
+    if (user) {
+      setCurrentUser(user);
+      setShowLoginForm(false);
+    } else {
+      alert('Login failed. Invalid username or password.');
     }
   };
 
-  const sendWebSocketMessage = (message) => {
-    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify(message));
+  const logout = () => {
+    setCurrentUser(null);
+    setShowProfile(false);
+  };
+
+  const updateUserPassword = (newPassword) => {
+    if (currentUser) {
+      const updatedFirefighters = firefighters.map(ff =>
+        ff.id === currentUser.id ? { ...ff, password: newPassword } : ff
+      );
+      setFirefighters(updatedFirefighters);
+      setCurrentUser({ ...currentUser, password: newPassword });
+      setShowProfile(false);
+      alert('Password updated successfully!');
     }
   };
 
-  const toggleAvailability = async (id) => {
-    try {
-      const response = await fetch(`/api/staff/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ available: !staff.find(member => member.id === id).available }),
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const updatedMember = await response.json();
-      // No need to update state here, WebSocket will push update
-    } catch (error) {
-      console.error("Failed to toggle availability:", error);
+  const updateUserName = (newName) => {
+    if (currentUser) {
+      const updatedFirefighters = firefighters.map(ff =>
+        ff.id === currentUser.id ? { ...ff, name: newName } : ff
+      );
+      setFirefighters(updatedFirefighters);
+      setCurrentUser({ ...currentUser, name: newName });
+      setShowProfile(false);
+      alert('Name updated successfully!');
     }
   };
 
-  const getNextAvailableStaff = (count) => {
-    const availableStaff = staff.filter(member => member.available);
-    return availableStaff.slice(0, Math.min(availableStaff.length, count));
+  const updateUserRole = (id, newRole) => {
+    setFirefighters(firefighters.map(ff =>
+      ff.id === id ? { ...ff, role: newRole } : ff
+    ));
+    setFirefighters(updatedFirefighters);
+    alert(`Role updated to ${newRole}`);
   };
 
-  const getNextAvailableStaffLarge = () => {
-    const availableStaff = getNextAvailableStaff(6);
-    if (availableStaff.length < 4) {
-      return [];
-    }
-    return availableStaff;
-  };
+  const recordApplianceRide = useCallback((id) => {
+    setFirefighters(currentFirefighters => {
+      const firefighterToMoveIndex = currentFirefighters.findIndex(ff => ff.id === id);
+      if (firefighterToMoveIndex === -1) return currentFirefighters; // User not found
 
-  const rotateStaff = async () => {
-    try {
-      const response = await fetch('/api/rotate-staff', { // Changed endpoint to /api/rotate-staff
-        method: 'POST',
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      // No need to update state here, WebSocket will push update
-    } catch (error) {
-      console.error("Failed to rotate staff:", error);
-    }
-  };
-
-
-  const addStaff = async () => {
-    console.log("addStaff function called"); // ADDED LOG
-    if (newStaffName.trim() !== '') {
-      try {
-        console.log("Attempting to add staff member:", newStaffName); // ADDED LOG
-        const response = await fetch('/api/staff', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ name: newStaffName }),
-        });
-        if (!response.ok) {
-          console.error("HTTP error adding staff:", response.status); // ADDED LOG
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const newMember = await response.json();
-        console.log("Staff member added successfully:", newMember); // ADDED LOG
-        setNewStaffName('');
-        // No need to update state here, WebSocket will push update
-      } catch (error) {
-        console.error("Failed to add staff:", error);
-      }
-    }
-  };
-
-
-  const removeStaff = async (id) => {
-    try {
-      const response = await fetch(`/api/staff/${id}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      if (response.status === 200) {
-        // No need to update state here, WebSocket will push update
-      } else {
-        console.error("Failed to remove staff, server response was not successful");
-      }
-    } catch (error) {
-      console.error("Failed to remove staff:", error);
-    }
-  };
-
-
-  const availableStaffSmall = getNextAvailableStaff(2);
-  const availableStaffLarge = getNextAvailableStaffLarge();
+      const firefighterToMove = currentFirefighters[firefighterToMoveIndex];
+      const remainingFirefighters = currentFirefighters.filter((_, index) => index !== firefighterToMoveIndex);
+      return [...remainingFirefighters, firefighterToMove]; // Append to the end
+    });
+  }, [setFirefighters]);
 
 
   return (
-    <div className="container">
-      <h1>Staff Availability</h1>
+    <>
+      <h1>Firefighter Availability App</h1>
 
-      <div className="top-lists availability-lists">
-        <div className="bowser-list-section">
-          <h2>Bowser</h2>
-          {availableStaffSmall.length > 0 ? (
-            <ul className="bowser-list">
-              {availableStaffSmall.map(member => (
-                <li key={member.id} className="bowser-item">{member.name}</li>
-              ))}
-            </ul>
-          ) : (
-            <p>No staff available.</p>
+      {currentUser ? (
+        <div>
+          <p>Logged in as: <strong>{currentUser.name} ({currentUser.role})</strong></p>
+          <button onClick={() => setShowProfile(!showProfile)}>
+            {showProfile ? 'Hide Profile' : 'Show Profile'}
+          </button>
+          <button onClick={logout}>Logout</button>
+          {(currentUser.role === 'admin' || currentUser.role === 'watch_manager' || currentUser.role === 'crew_manager') && ( // Add User Button
+            <button onClick={() => setShowAddUserForm(!showAddUserForm)}>
+              {showAddUserForm ? 'Hide Add User Form' : 'Add User'}
+            </button>
           )}
         </div>
-
-        <div className="pump-list-section">
-          <h2>Pump</h2>
-          {availableStaffLarge.length >= 4 ? (
-            <ul className="pump-list">
-              {availableStaffLarge.map(member => (
-                <li key={member.id} className="pump-item">{member.name}</li>
-              ))}
-            </ul>
-          ) : (
-            <p>Unavailable</p>
-          )}
+      ) : (
+        <div>
+          <button onClick={() => setShowLoginForm(true) & setShowRegistrationForm(false)}>
+            Login
+          </button>
+          <button onClick={() => setShowRegistrationForm(true) & setShowLoginForm(false)}>
+            Signup
+          </button>
         </div>
-      </div>
+      )}
 
-      <div className="top-rotate rotate-staff-section">
-        <button onClick={rotateStaff} className="rotate-button">Rotate Staff</button>
-      </div>
+      {showRegistrationForm && <RegistrationForm onRegister={addFirefighter} />}
+      {showLoginForm && <LoginForm onLogin={login} />}
+      {showProfile && currentUser && <UserProfile user={currentUser} onPasswordChange={updateUserPassword} onNameChange={updateUserName} />}
+      {showAddUserForm && currentUser && (currentUser.role === 'admin' || currentUser.role === 'watch_manager' || currentUser.role === 'crew_manager') && ( // Conditionally render AddUserForm
+        <AddUserForm onRegister={addFirefighter} onCancel={() => setShowAddUserForm(false)} />
+      )}
 
-      <div className="add-staff">
-        <input
-          type="text"
-          placeholder="Enter staff name"
-          value={newStaffName}
-          onChange={(e) => setNewStaffName(e.target.value)}
-          className="add-staff-input"
-        />
-        <button onClick={addStaff} className="add-staff-button">Add Staff</button>
-      </div>
-
-      <ul className="staff-list">
-        {staff.map(member => (
-          <li key={member.id} className="staff-item">
-            <span className="staff-name">
-              {member.name} - {member.available ? <strong className="available">Available</strong> : <strong className="unavailable">Unavailable</strong>}
-            </span>
-            <div className="staff-actions">
-              <button onClick={() => toggleAvailability(member.id)} className="toggle-button">
-                Toggle Availability
-              </button>
-              <button onClick={() => removeStaff(member.id)} className="remove-button">
-                Remove
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+      {currentUser && !showProfile && !showAddUserForm && (
+        <>
+          <ResourceDashboard firefighters={firefighters} /> {/* ResourceDashboard MOVED UP */}
+          <AvailabilityDashboard firefighters={firefighters} toggleAvailability={toggleAvailability} currentUser={currentUser} updateUserRole={updateUserRole} recordApplianceRide={recordApplianceRide} removeFirefighter={removeFirefighter} /> {/* AvailabilityDashboard MOVED DOWN */}
+        </>
+      )}
+       {currentUser && showProfile && (
+        <UserProfile user={currentUser} onPasswordChange={updateUserPassword} onNameChange={updateUserName} />
+      )}
+    </>
+  )
 }
 
-export default App;
+export default App

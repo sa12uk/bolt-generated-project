@@ -1,190 +1,229 @@
 /* src/index.css */
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Roboto', sans-serif;
   margin: 0;
-  background-color: #f4f7f9;
-  color: #333;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
+  padding: 0;
+  background-color: #f8f9fa;
+  color: #343a40;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
-.container {
-  background-color: white;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-  width: 95%;
-  max-width: 800px;
-  margin: 20px;
+h1, h2, h3, h4, h5, h6 {
+  color: #212529;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  line-height: 1.2;
 }
 
-h1, h2 {
-  color: #2c3e50;
-  text-align: center;
-  margin-bottom: 20px;
+h1 {
+  font-size: 2.5rem;
 }
 
-.top-lists,
-.top-rotate,
-.add-staff {
-  margin-bottom: 20px;
+h2 {
+  font-size: 2rem;
 }
 
-.add-staff-input {
-  padding: 10px;
-  border-radius: 5px;
-  border: 1px solid #e0e0e0;
-  margin-right: 10px;
-  flex-grow: 1;
+h3 {
+  font-size: 1.75rem;
 }
 
-.add-staff-button,
-.toggle-button,
-.remove-button,
-.rotate-button {
-  background-color: #3498db;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.3s ease;
-}
-
-.add-staff-button:hover,
-.toggle-button:hover,
-.remove-button:hover,
-.rotate-button:hover {
-  background-color: #2980b9;
-}
-
-.remove-button {
-  background-color: #e74c3c;
-}
-
-.remove-button:hover {
-  background-color: #c0392b;
-}
-
-.staff-list {
+ul {
   list-style: none;
   padding: 0;
 }
 
-.staff-item {
+li {
+  margin-bottom: 0.75rem;
+  padding: 1rem;
   background-color: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  padding: 15px;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.08);
   display: flex;
+  border: 1px solid #e9ecef;
+}
+
+button, select, input[type="text"], input[type="password"] {
+  font-family: 'Roboto', sans-serif;
+  padding: 0.6rem 1rem;
+  border-radius: 0.3rem;
+  border: 1px solid #ced4da;
+  background-color: #fff;
+  color: #495057;
+  font-size: 1rem;
+  transition: all 0.2s ease-in-out;
+  outline: none;
+  margin-bottom: 0.5rem;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.08);
+}
+
+button:hover {
+  background-color: #0056b3;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.15);
+}
+
+button:focus {
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.5);
+}
+
+select {
+  cursor: pointer;
+}
+
+select:focus, input[type="text"]:focus, input[type="password"]:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+
+.error {
+  color: #dc3545;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #495057;
+}
+
+input[type="text"], input[type="password"], select {
+  margin-bottom: 1rem;
+  width: calc(100% - 2rem);
+}
+
+form > div {
+  margin-bottom: 1rem;
+}
+
+#root {
+  max-width: 960px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background-color: #fff;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+/* Utility classes for layout and spacing if needed */
+.mb-3 {
+  margin-bottom: 1rem;
+}
+
+.mt-3 {
+  margin-top: 1rem;
+}
+
+.d-flex {
+  display: flex;
+}
+
+.justify-content-between {
   justify-content: space-between;
+}
+
+.align-items-center {
   align-items: center;
 }
 
-.staff-name {
-  font-size: 1.1rem;
-  color: #555;
+.availability-row {
+  display: grid; /* Changed to grid layout */
+  grid-template-columns: 3fr 2fr;
+  align-items: center;
 }
 
-.available {
-  color: #27ae60;
-  font-weight: bold;
+.availability-row > div {
+  padding: 0.5rem;
 }
 
-.unavailable {
-  color: #e74c3c;
-  font-weight: bold;
+
+.availability-row.available {
+  background-color: #e6f7e8; /* Light green */
 }
 
-.staff-actions {
-  display: flex;
-  gap: 10px;
+.availability-row.unavailable {
+  background-color: #fce8e6; /* Light red */
 }
 
-.top-lists.availability-lists {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 15px;
+.availability-row .user-info {
+  /* flex-grow: 1; Removed flex-grow for grid layout */
 }
 
-.bowser-list-section,
-.pump-list-section {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 0;
-  width: 48%;
-  box-sizing: border-box;
-}
-
-.bowser-list,
-.pump-list {
-  list-style: none;
-  padding-left: 20px;
-}
-
-.bowser-item,
-.pump-item {
-  color: #3498db;
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-.top-rotate.rotate-staff-section {
+.availability-row .status-indicator {
   text-align: center;
-  margin-bottom: 20px;
+  display: none; /* Hide status indicator column */
 }
 
-/* Mobile responsiveness */
-@media (max-width: 600px) {
-  .container {
-    padding: 20px;
-    margin: 10px;
-  }
+.availability-row .actions {
+  display: grid; /* Actions container is GRID */
+  grid-template-columns: 1fr; /* ONE column for actions grid */
+  grid-template-rows: auto auto; /* Two rows, auto height */
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-left: 1rem;
+  align-items: start;
+}
 
-  .staff-item {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+.availability-row .actions-row {
+  display: flex; /* Actions-row is FLEX to arrange items horizontally in row */
+  gap: 0.5rem;
+  width: 100%; /* Ensure actions-row takes full width of its grid cell */
+  justify-content: space-around; /* Distribute space evenly */
+}
 
-  .staff-actions {
-    margin-top: 10px;
-    flex-direction: column;
-    align-items: stretch;
-  }
+.availability-row .actions-row > * { /* Target direct children of actions-row (buttons, select) */
+  flex: 1; /* Distribute equal space to children */
+  width: auto; /* Override any width that might prevent flex from working */
+}
 
-  .toggle-button,
-  .remove-button {
-    width: 100%;
-    box-sizing: border-box;
-  }
 
-  .add-staff {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-  }
+/* Resource Dashboard Styles - No changes here */
+.resource-dashboard li {
+  display: block;
+}
 
-  .add-staff-input {
-    margin-right: 0;
-    margin-bottom: 10px;
-  }
+.resource-dashboard li h3 {
+  margin-bottom: 0.5rem;
+}
 
-  .add-staff-button {
-    width: 100%;
-  }
+.resource-dashboard li p {
+  margin-bottom: 0.5rem;
+}
 
-  .top-lists.availability-lists {
-    flex-direction: column;
-  }
+.resource-dashboard li > div {
+  margin-top: 0.5rem;
+  padding-left: 1rem;
+}
 
-  .bowser-list-section,
-  .pump-list-section {
-    width: 100%;
-    margin-bottom: 15px;
-  }
+.resource-dashboard li ul {
+  margin-top: 0.25rem;
+  padding-left: 1rem;
+}
+
+.resource-dashboard li ul li {
+  background-color: transparent;
+  box-shadow: none;
+  border: none;
+  padding: 0.25rem 0;
+  margin-bottom: 0;
+  display: list-item;
+}
+
+.availability-dashboard .remove-user-button {
+  background-color: #dc3545; /* Red color for remove button */
+  color: white;
+}
+
+.availability-dashboard .remove-user-button:hover {
+  background-color: #c82333;
 }
