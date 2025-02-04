@@ -5,7 +5,7 @@ import ResourceDashboard from './components/ResourceDashboard';
 import RegistrationForm from './components/RegistrationForm';
 import LoginForm from './components/LoginForm';
 import UserProfile from './components/UserProfile';
-import AddUserForm from './components/AddUserForm'; // Import AddUserForm
+import AddUserForm from './components/AddUserForm';
 
 function App() {
   const [firefighters, setFirefighters] = useState(() => {
@@ -20,7 +20,7 @@ function App() {
     ];
   });
   // Move showAddUserForm State Declaration to the TOP, after firefighters state
-  const [showAddUserForm, setShowAddUserForm] = useState(false); // State for Add User Form
+  const [showAddUserForm, setShowAddUserForm] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(true); // Login form is default
@@ -159,31 +159,34 @@ function App() {
         </div>
       ) : (
         <div>
-          <button onClick={() => setShowLoginForm(true) & setShowRegistrationForm(false)}>
-            Login
+          <button onClick={() => setShowLoginForm(!showLoginForm)}>
+            {showLoginForm ? 'Hide Login Form' : 'Show Login Form'}
           </button>
-          <button onClick={() => setShowRegistrationForm(true) & setShowLoginForm(false)}>
-            Signup
+          <button onClick={() => setShowRegistrationForm(!showRegistrationForm)}>
+            {showRegistrationForm ? 'Hide Registration Form' : 'Show Registration Form'}
           </button>
         </div>
       )}
 
       {showRegistrationForm && <RegistrationForm onRegister={addFirefighter} />}
       {showLoginForm && <LoginForm onLogin={login} />}
-      {showProfile && currentUser && <UserProfile user={currentUser} onPasswordChange={updateUserPassword} onNameChange={updateUserName} />}
+
+      {/* Correct Conditional Rendering for UserProfile - Render ONCE */}
+      {showProfile && currentUser && (
+        <UserProfile user={currentUser} onPasswordChange={updateUserPassword} onNameChange={updateUserName} />
+      )}
+
       {showAddUserForm && currentUser && (currentUser.role === 'admin' || currentUser.role === 'watch_manager' || currentUser.role === 'crew_manager') && ( // Conditionally render AddUserForm
         <AddUserForm onRegister={addFirefighter} onCancel={() => setShowAddUserForm(false)} />
       )}
 
       {currentUser && !showProfile && !showAddUserForm && (
         <>
-          <ResourceDashboard firefighters={firefighters} /> {/* ResourceDashboard MOVED UP */}
-          <AvailabilityDashboard firefighters={firefighters} toggleAvailability={toggleAvailability} currentUser={currentUser} updateUserRole={updateUserRole} recordApplianceRide={recordApplianceRide} removeFirefighter={removeFirefighter} /> {/* AvailabilityDashboard MOVED DOWN */}
+          <ResourceDashboard firefighters={firefighters} />
+          <AvailabilityDashboard firefighters={firefighters} toggleAvailability={toggleAvailability} currentUser={currentUser} updateUserRole={updateUserRole} recordApplianceRide={recordApplianceRide} removeFirefighter={removeFirefighter} />
         </>
       )}
-       {currentUser && showProfile && (
-        <UserProfile user={currentUser} onPasswordChange={updateUserPassword} onNameChange={updateUserName} />
-      )}
+
     </>
   )
 }

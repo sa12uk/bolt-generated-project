@@ -37,7 +37,7 @@ const UserProfile = ({ user, onPasswordChange, onNameChange }) => {
 
   return (
     <div>
-      <h2>User Profile</h2>
+      <h2>User Profile</h2> {/* Correct H2 for User Profile - No Duplication Here */}
       <div>
         <label htmlFor="newName">Name:</label>
         <input
